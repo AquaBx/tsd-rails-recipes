@@ -1,5 +1,37 @@
+class AuthorizationContext
+  attr_reader :user, :office
+
+  def initialize(user, office)
+    @user = user
+    @office = office
+  end
+end
+
+class ApplicationPolicy
+  attr_reader :request_office, :user, :record
+
+  def initialize(authorization_context, record)
+    @user = authorization_context.user
+    @office = authorization_context.office
+    @record = record
+  end
+
+  def index?
+    # Your policy has access to @user, @office, and @record.
+  end
+end
+
+
+
 class RecipesController < ApplicationController
+
+  include Pundit
+
   before_action :set_recipe, only: %i[ show edit update destroy ]
+
+  def pundit_user
+    AuthorizationContext.new(current_user, current_office)
+  end
 
   # GET /recipes or /recipes.json
   def index
@@ -8,7 +40,8 @@ class RecipesController < ApplicationController
 
   # GET /recipes/1 or /recipes/1.json
   def show
-  end
+    @ingredient = Ingredient.new(recipe: @recipe)
+    end
 
   # GET /recipes/new
   def new
